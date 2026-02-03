@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Network Monitor</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        margin: 2rem;
+        background: #f7f7f9;
+        color: #1c1c1c;
+      }
+      main {
+        max-width: 640px;
+        margin: 0 auto;
+        background: #fff;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+      }
+      h1 {
+        margin-top: 0;
+      }
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+      }
+      select,
+      button {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        font-size: 1rem;
+      }
+      button {
+        margin-top: 1rem;
+        background: #1b6ef3;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      button:disabled {
+        background: #9bbcf5;
+        cursor: not-allowed;
+      }
+      .status {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        background: #eef2ff;
+      }
+      .muted {
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Network Monitor</h1>
+      <p class="muted">Välj vilket nätverkskort som ska användas för paketfångst.</p>
+
+      <label for="deviceSelect">Nätverkskort</label>
+      <select id="deviceSelect"></select>
+      <button id="saveButton" type="button">Spara val</button>
+
+      <div id="status" class="status" hidden></div>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
