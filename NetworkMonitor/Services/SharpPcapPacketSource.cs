@@ -9,12 +9,12 @@ namespace NetworkMonitor.Services;
 public class SharpPcapPacketSource : IPacketSource
 {
     private readonly ILogger<SharpPcapPacketSource> _logger;
-    private readonly IOptionsMonitor<MonitorOptions> _options;
+    private readonly MonitorOptions _options;
 
-    public SharpPcapPacketSource(ILogger<SharpPcapPacketSource> logger, IOptionsMonitor<MonitorOptions> options)
+    public SharpPcapPacketSource(ILogger<SharpPcapPacketSource> logger, IOptions<MonitorOptions> options)
     {
         _logger = logger;
-        _options = options;
+        _options = options.Value;
     }
 
     public async IAsyncEnumerable<RawCapture> CaptureAsync([System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
@@ -79,12 +79,11 @@ public class SharpPcapPacketSource : IPacketSource
             return null;
         }
 
-        var deviceName = _options.CurrentValue.DeviceName;
-        if (!string.IsNullOrWhiteSpace(deviceName))
+        if (!string.IsNullOrWhiteSpace(_options.DeviceName))
         {
             var match = devices.FirstOrDefault(device =>
-                device.Name.Contains(deviceName, StringComparison.OrdinalIgnoreCase) ||
-                device.Description?.Contains(deviceName, StringComparison.OrdinalIgnoreCase) == true);
+                device.Name.Contains(_options.DeviceName, StringComparison.OrdinalIgnoreCase) ||
+                device.Description?.Contains(_options.DeviceName, StringComparison.OrdinalIgnoreCase) == true);
 
             if (match is not null)
             {
@@ -92,7 +91,7 @@ public class SharpPcapPacketSource : IPacketSource
                 return match;
             }
 
-            _logger.LogWarning("Device {Device} not found, falling back to first available.", deviceName);
+            _logger.LogWarning("Device {Device} not found, falling back to first available.", _options.DeviceName);
         }
 
         var fallback = devices[0];

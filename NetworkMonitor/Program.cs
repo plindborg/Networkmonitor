@@ -1,58 +1,33 @@
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using NetworkMonitor.Data;
 using NetworkMonitor.Options;
 using NetworkMonitor.Services;
 
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Configuration
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-    .AddEnvironmentVariables(prefix: "NETWORKMONITOR_");
-
-builder.Services.Configure<MonitorOptions>(builder.Configuration.GetSection(MonitorOptions.SectionName));
-
-builder.Services.AddSingleton<TrafficDatabase>();
-builder.Services.AddSingleton<TrafficAnalyzer>();
-builder.Services.AddSingleton<WebsiteStatisticsService>();
-builder.Services.AddSingleton<DeviceConfigService>();
-builder.Services.AddSingleton<IPacketSource, SharpPcapPacketSource>();
-builder.Services.AddHostedService<PacketCaptureService>();
-
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-
-var app = builder.Build();
-
-await app.Services.GetRequiredService<TrafficDatabase>().InitializeAsync();
-
-app.UseDefaultFiles();
-app.UseStaticFiles();
-
-app.MapGet("/api/devices", (DeviceConfigService deviceConfigService) =>
-    Results.Ok(deviceConfigService.GetNetworkDevices()));
-
-app.MapGet("/api/config", (IOptionsMonitor<MonitorOptions> options) =>
-    Results.Ok(new { deviceName = options.CurrentValue.DeviceName ?? string.Empty }));
-
-app.MapPost("/api/device", async (
-    DeviceSelectionRequest request,
-    DeviceConfigService deviceConfigService,
-    CancellationToken cancellationToken) =>
-{
-    if (string.IsNullOrWhiteSpace(request.DeviceName))
+var host = Host.CreateDefaultBuilder(args)
+    .ConfigureAppConfiguration(builder =>
     {
-        return Results.BadRequest(new { message = "DeviceName saknas." });
-    }
-
-    var updated = await deviceConfigService.UpdateDeviceNameAsync(request.DeviceName, cancellationToken);
-    return Results.Ok(new
+        builder.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+        builder.AddEnvironmentVariables(prefix: "NETWORKMONITOR_");
+    })
+    .ConfigureServices((context, services) =>
     {
-        message = updated
-            ? "Nätverkskort uppdaterat. Starta om tjänsten för att byta capture-enhet."
-            : "Kunde inte uppdatera nätverkskortet."
-    });
-});
+        services.Configure<MonitorOptions>(context.Configuration.GetSection(MonitorOptions.SectionName));
 
-app.Run();
+        services.AddSingleton<TrafficDatabase>();
+        services.AddSingleton<TrafficAnalyzer>();
+        services.AddSingleton<WebsiteStatisticsService>();
+        services.AddSingleton<IPacketSource, SharpPcapPacketSource>();
+        services.AddHostedService<PacketCaptureService>();
+    })
+    .ConfigureLogging(logging =>
+    {
+        logging.ClearProviders();
+        logging.AddConsole();
+    })
+    .Build();
 
-internal record DeviceSelectionRequest(string DeviceName);
+await host.Services.GetRequiredService<TrafficDatabase>().InitializeAsync();
+await host.RunAsync();

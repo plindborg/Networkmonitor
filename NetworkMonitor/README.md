@@ -8,7 +8,6 @@ Den här katalogen innehåller en .NET-tjänst som övervakar nätverkstrafik, a
 - Loggar varje trafik-händelse i `traffic_events`.
 - Aggregerar webbplatsstatistik per dag i `website_stats`.
 - Konfigureras via `appsettings.json` eller miljövariabler.
-- Har ett webgränssnitt där du kan välja nätverkskort.
 
 ## Kom igång
 
@@ -20,8 +19,6 @@ Den här katalogen innehåller en .NET-tjänst som övervakar nätverkstrafik, a
 cd NetworkMonitor
 dotnet run
 ```
-
-Öppna sedan webgränssnittet på `http://localhost:5000` (eller den port som Kestrel loggar). Där kan du välja nätverkskort och spara valet i `appsettings.json`. Starta om tjänsten för att byta capture‑enhet.
 
 ## Konfiguration
 
